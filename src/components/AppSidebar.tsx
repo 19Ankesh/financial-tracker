@@ -1,8 +1,7 @@
-import { useState } from 'react';
 import { cn } from '@/lib/utils';
-import { LayoutDashboard, ArrowUpDown, Target, PiggyBank, BarChart3, Brain, Download } from 'lucide-react';
+import { LayoutDashboard, ArrowUpDown, Target, PiggyBank, BarChart3, Brain, Settings } from 'lucide-react';
 
-type Page = 'dashboard' | 'transactions' | 'budgets' | 'goals' | 'reports' | 'insights';
+type Page = 'dashboard' | 'transactions' | 'budgets' | 'goals' | 'reports' | 'insights' | 'settings';
 
 interface SidebarProps {
   currentPage: Page;
@@ -55,7 +54,17 @@ export function AppSidebar({ currentPage, onNavigate }: SidebarProps) {
         })}
       </nav>
 
-      <div className="p-3 border-t border-border">
+      <div className="p-3 border-t border-border space-y-1">
+        <button
+          onClick={() => onNavigate('settings')}
+          className={cn(
+            "w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-sm transition-colors",
+            currentPage === 'settings' ? "text-primary bg-primary/10" : "text-muted-foreground hover:text-foreground hover:bg-accent"
+          )}
+        >
+          <Settings className="w-5 h-5 shrink-0" />
+          <span className="hidden lg:block">Settings</span>
+        </button>
         <div className="hidden lg:flex items-center gap-2 px-3 py-2">
           <div className="w-2 h-2 rounded-full bg-success" />
           <span className="text-xs text-muted-foreground">System Online</span>

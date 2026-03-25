@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useFinance } from '@/contexts/FinanceContext';
 import { CATEGORY_CONFIG } from '@/lib/types';
+import { formatMoney, getCurrencySymbol } from '@/lib/currencies';
 import { predictNextMonth } from '@/lib/ai-insights';
 import { TrendingUp, TrendingDown, Wallet, Brain } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
@@ -26,7 +27,7 @@ function MetricCard({ label, value, icon: Icon, trend, color }: {
 }
 
 export function DashboardPage() {
-  const { transactions } = useFinance();
+  const { transactions, currency } = useFinance();
 
   const stats = useMemo(() => {
     const now = new Date();
@@ -40,7 +41,6 @@ export function DashboardPage() {
     const balance = totalIncome - totalExpenses;
     const predicted = predictNextMonth(transactions);
 
-    // Monthly chart data
     const chartData: { month: string; income: number; expenses: number }[] = [];
     for (let m = 5; m >= 0; m--) {
       const d = new Date(now.getFullYear(), now.getMonth() - m, 1);
@@ -53,7 +53,6 @@ export function DashboardPage() {
       });
     }
 
-    // Category breakdown
     const catMap = new Map<string, number>();
     monthTx.filter(t => t.type === 'expense').forEach(t => {
       catMap.set(t.category, (catMap.get(t.category) || 0) + t.amount);
@@ -66,13 +65,14 @@ export function DashboardPage() {
       }))
       .sort((a, b) => b.value - a.value);
 
-    // Recent transactions
     const recent = [...transactions]
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
       .slice(0, 5);
 
     return { income, expenses, balance, predicted, chartData, categoryData, recent };
   }, [transactions]);
+
+  const sym = getCurrencySymbol(currency);
 
   return (
     <div className="space-y-6">
@@ -81,17 +81,14 @@ export function DashboardPage() {
         <p className="text-sm text-muted-foreground mt-1">Your financial command center</p>
       </div>
 
-      {/* Metric Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <MetricCard label="Total Balance" value={`$${stats.balance.toFixed(2)}`} icon={Wallet} color="hsl(var(--primary))" />
-        <MetricCard label="Monthly Income" value={`$${stats.income.toFixed(2)}`} icon={TrendingUp} color="hsl(var(--success))" />
-        <MetricCard label="Monthly Expenses" value={`$${stats.expenses.toFixed(2)}`} icon={TrendingDown} color="hsl(var(--destructive))" />
-        <MetricCard label="Next Month Forecast" value={`$${stats.predicted.toFixed(0)}`} icon={Brain} trend="AI-powered prediction" />
+        <MetricCard label="Total Balance" value={formatMoney(stats.balance, currency)} icon={Wallet} color="hsl(var(--primary))" />
+        <MetricCard label="Monthly Income" value={formatMoney(stats.income, currency)} icon={TrendingUp} color="hsl(var(--success))" />
+        <MetricCard label="Monthly Expenses" value={formatMoney(stats.expenses, currency)} icon={TrendingDown} color="hsl(var(--destructive))" />
+        <MetricCard label="Next Month Forecast" value={formatMoney(stats.predicted, currency)} icon={Brain} trend="AI-powered prediction" />
       </div>
 
-      {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* Area Chart */}
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}
           className="lg:col-span-2 bg-card border border-border rounded-lg p-5">
           <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-4">6-Month Trend</h2>
@@ -108,10 +105,10 @@ export function DashboardPage() {
                 </linearGradient>
               </defs>
               <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fill: '#A1A1AA', fontSize: 12 }} />
-              <YAxis axisLine={false} tickLine={false} tick={{ fill: '#A1A1AA', fontSize: 12 }} tickFormatter={v => `$${v / 1000}k`} />
+              <YAxis axisLine={false} tickLine={false} tick={{ fill: '#A1A1AA', fontSize: 12 }} tickFormatter={v => `${sym}${v / 1000}k`} />
               <Tooltip
                 contentStyle={{ background: 'hsl(240, 4%, 7%)', border: '1px solid hsl(240, 4%, 14%)', borderRadius: 8, color: '#fff', fontSize: 13 }}
-                formatter={(value: number) => [`$${value.toFixed(0)}`, undefined]}
+                formatter={(value: number) => [formatMoney(value, currency), undefined]}
               />
               <Area type="monotone" dataKey="income" stroke="hsl(142, 71%, 45%)" strokeWidth={2} fill="url(#incomeGrad)" name="Income" />
               <Area type="monotone" dataKey="expenses" stroke="hsl(185, 100%, 50%)" strokeWidth={2} fill="url(#expenseGrad)" name="Expenses" />
@@ -119,7 +116,6 @@ export function DashboardPage() {
           </ResponsiveContainer>
         </motion.div>
 
-        {/* Pie Chart */}
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}
           className="bg-card border border-border rounded-lg p-5">
           <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-4">Spending Breakdown</h2>
@@ -132,7 +128,7 @@ export function DashboardPage() {
               </Pie>
               <Tooltip
                 contentStyle={{ background: 'hsl(240, 4%, 7%)', border: '1px solid hsl(240, 4%, 14%)', borderRadius: 8, color: '#fff', fontSize: 13 }}
-                formatter={(value: number) => [`$${value}`, undefined]}
+                formatter={(value: number) => [formatMoney(value, currency), undefined]}
               />
             </PieChart>
           </ResponsiveContainer>
@@ -143,14 +139,13 @@ export function DashboardPage() {
                   <div className="w-2 h-2 rounded-full" style={{ background: c.color }} />
                   <span className="text-muted-foreground">{c.name}</span>
                 </div>
-                <span className="font-mono tabular-nums">${c.value}</span>
+                <span className="font-mono tabular-nums">{formatMoney(c.value, currency)}</span>
               </div>
             ))}
           </div>
         </motion.div>
       </div>
 
-      {/* Recent Transactions */}
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }}
         className="bg-card border border-border rounded-lg p-5">
         <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-4">Recent Transactions</h2>
@@ -165,10 +160,13 @@ export function DashboardPage() {
                 </div>
               </div>
               <span className={`font-mono text-sm tabular-nums ${t.type === 'income' ? 'text-success' : 'text-destructive'}`}>
-                {t.type === 'income' ? '+' : '-'}${t.amount.toFixed(2)}
+                {t.type === 'income' ? '+' : '-'}{formatMoney(t.amount, currency)}
               </span>
             </div>
           ))}
+          {stats.recent.length === 0 && (
+            <p className="text-sm text-muted-foreground text-center py-8">No transactions yet. Add your first one!</p>
+          )}
         </div>
       </motion.div>
     </div>
