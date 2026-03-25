@@ -20,7 +20,7 @@ function TransactionForm({ initial, onSubmit, onClose }: {
   const [description, setDescription] = useState(initial?.description || '');
   const [date, setDate] = useState(initial?.date?.slice(0, 10) || new Date().toISOString().slice(0, 10));
   const [isRecurring, setIsRecurring] = useState(initial?.isRecurring || false);
-  const [frequency, setFrequency] = useState(initial?.recurringFrequency || 'monthly');
+  const [frequency, setFrequency] = useState<'weekly' | 'monthly' | 'yearly'>(initial?.recurringFrequency || 'monthly');
 
   const categories = type === 'income' ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
 
