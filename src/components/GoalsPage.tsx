@@ -2,13 +2,14 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useFinance } from '@/contexts/FinanceContext';
 import { SavingsGoal } from '@/lib/types';
+import { formatMoney } from '@/lib/currencies';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Plus, Trash2, Target } from 'lucide-react';
 
 export function GoalsPage() {
-  const { goals, addGoal, updateGoal, deleteGoal } = useFinance();
+  const { goals, addGoal, updateGoal, deleteGoal, currency } = useFinance();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [name, setName] = useState('');
   const [target, setTarget] = useState('');
@@ -17,17 +18,17 @@ export function GoalsPage() {
   const [addAmountId, setAddAmountId] = useState<string | null>(null);
   const [addAmount, setAddAmount] = useState('');
 
-  const handleAdd = (e: React.FormEvent) => {
+  const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
-    addGoal({ id: crypto.randomUUID(), name, target: parseFloat(target), current: parseFloat(current), deadline: new Date(deadline).toISOString() });
+    await addGoal({ name, target: parseFloat(target), current: parseFloat(current), deadline: new Date(deadline).toISOString() });
     setDialogOpen(false);
     setName(''); setTarget(''); setCurrent('0'); setDeadline('');
   };
 
-  const handleAddFunds = (goal: SavingsGoal) => {
+  const handleAddFunds = async (goal: SavingsGoal) => {
     const amt = parseFloat(addAmount);
     if (amt > 0) {
-      updateGoal({ ...goal, current: goal.current + amt });
+      await updateGoal({ ...goal, current: goal.current + amt });
       setAddAmountId(null);
       setAddAmount('');
     }
@@ -75,8 +76,8 @@ export function GoalsPage() {
               </div>
 
               <div className="flex justify-between text-sm mb-2">
-                <span className="font-mono tabular-nums text-primary">${g.current.toFixed(0)}</span>
-                <span className="font-mono tabular-nums text-muted-foreground">${g.target.toFixed(0)}</span>
+                <span className="font-mono tabular-nums text-primary">{formatMoney(g.current, currency)}</span>
+                <span className="font-mono tabular-nums text-muted-foreground">{formatMoney(g.target, currency)}</span>
               </div>
               <div className="h-3 bg-accent rounded-full overflow-hidden">
                 <motion.div
@@ -88,7 +89,7 @@ export function GoalsPage() {
               </div>
               <div className="flex justify-between mt-2 text-xs text-muted-foreground">
                 <span>{pct.toFixed(0)}% complete</span>
-                <span>{daysLeft} days left • ${remaining.toFixed(0)} to go</span>
+                <span>{daysLeft} days left • {formatMoney(remaining, currency)} to go</span>
               </div>
 
               {addAmountId === g.id ? (

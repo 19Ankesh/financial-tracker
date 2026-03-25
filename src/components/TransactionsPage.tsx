@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useFinance } from '@/contexts/FinanceContext';
 import { Transaction, Category, CATEGORY_CONFIG, INCOME_CATEGORIES, EXPENSE_CATEGORIES } from '@/lib/types';
+import { formatMoney } from '@/lib/currencies';
 import { exportToCSV } from '@/lib/export';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,7 +12,7 @@ import { Plus, Search, Download, Trash2, Pencil, ArrowUpDown } from 'lucide-reac
 
 function TransactionForm({ initial, onSubmit, onClose }: {
   initial?: Transaction;
-  onSubmit: (t: Transaction) => void;
+  onSubmit: (t: Omit<Transaction, 'id'> & { id?: string }) => void;
   onClose: () => void;
 }) {
   const [type, setType] = useState(initial?.type || 'expense');
@@ -27,14 +28,14 @@ function TransactionForm({ initial, onSubmit, onClose }: {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSubmit({
-      id: initial?.id || crypto.randomUUID(),
+      ...(initial?.id ? { id: initial.id } : {}),
       type: type as 'income' | 'expense',
       amount: parseFloat(amount),
       category,
       description,
-      date: new Date(date).toISOString(),
+      date,
       isRecurring,
-      recurringFrequency: isRecurring ? frequency as 'weekly' | 'monthly' | 'yearly' : undefined,
+      recurringFrequency: isRecurring ? frequency : undefined,
     });
     onClose();
   };
@@ -86,7 +87,7 @@ function TransactionForm({ initial, onSubmit, onClose }: {
 }
 
 export function TransactionsPage() {
-  const { transactions, addTransaction, updateTransaction, deleteTransaction } = useFinance();
+  const { transactions, addTransaction, updateTransaction, deleteTransaction, currency } = useFinance();
   const [search, setSearch] = useState('');
   const [filterCategory, setFilterCategory] = useState('all');
   const [filterType, setFilterType] = useState('all');
@@ -115,6 +116,14 @@ export function TransactionsPage() {
     else { setSortField(field); setSortDir('desc'); }
   };
 
+  const handleSubmit = async (t: Omit<Transaction, 'id'> & { id?: string }) => {
+    if (t.id) {
+      await updateTransaction(t as Transaction);
+    } else {
+      await addTransaction(t);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -134,7 +143,7 @@ export function TransactionsPage() {
               <DialogHeader><DialogTitle>{editing ? 'Edit' : 'New'} Transaction</DialogTitle></DialogHeader>
               <TransactionForm
                 initial={editing}
-                onSubmit={t => editing ? updateTransaction(t) : addTransaction(t)}
+                onSubmit={handleSubmit}
                 onClose={() => { setDialogOpen(false); setEditing(undefined); }}
               />
             </DialogContent>
@@ -142,7 +151,6 @@ export function TransactionsPage() {
         </div>
       </div>
 
-      {/* Filters */}
       <div className="flex flex-wrap gap-3">
         <div className="relative flex-1 min-w-[200px]">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -167,7 +175,6 @@ export function TransactionsPage() {
         </Select>
       </div>
 
-      {/* Table */}
       <div className="bg-card border border-border rounded-lg overflow-hidden">
         <div className="grid grid-cols-[1fr_auto_auto_auto_auto] gap-4 px-4 py-3 text-xs text-muted-foreground uppercase tracking-wider border-b border-border font-medium">
           <span>Transaction</span>
@@ -199,7 +206,7 @@ export function TransactionsPage() {
               <span className="text-sm text-muted-foreground whitespace-nowrap">{new Date(t.date).toLocaleDateString()}</span>
               <span className="text-xs px-2 py-0.5 rounded-full bg-accent text-muted-foreground">{CATEGORY_CONFIG[t.category]?.label}</span>
               <span className={`font-mono text-sm tabular-nums whitespace-nowrap ${t.type === 'income' ? 'text-success' : 'text-destructive'}`}>
-                {t.type === 'income' ? '+' : '-'}${t.amount.toFixed(2)}
+                {t.type === 'income' ? '+' : '-'}{formatMoney(t.amount, currency)}
               </span>
               <div className="flex gap-1">
                 <button onClick={() => { setEditing(t); setDialogOpen(true); }}

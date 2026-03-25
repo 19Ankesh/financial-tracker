@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useFinance } from '@/contexts/FinanceContext';
 import { Budget, Category, EXPENSE_CATEGORIES, CATEGORY_CONFIG } from '@/lib/types';
+import { formatMoney } from '@/lib/currencies';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -9,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Plus, Trash2, AlertTriangle } from 'lucide-react';
 
 export function BudgetsPage() {
-  const { transactions, budgets, addBudget, deleteBudget } = useFinance();
+  const { transactions, budgets, addBudget, deleteBudget, currency } = useFinance();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [category, setCategory] = useState<Category>('food');
   const [limit, setLimit] = useState('');
@@ -29,9 +30,9 @@ export function BudgetsPage() {
       });
   }, [budgets, transactions, currentMonth]);
 
-  const handleAdd = (e: React.FormEvent) => {
+  const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
-    addBudget({ id: crypto.randomUUID(), category, limit: parseFloat(limit), month: currentMonth });
+    await addBudget({ category, limit: parseFloat(limit), month: currentMonth });
     setDialogOpen(false);
     setLimit('');
   };
@@ -80,8 +81,8 @@ export function BudgetsPage() {
               </div>
             </div>
             <div className="flex justify-between text-sm mb-2">
-              <span className="font-mono tabular-nums text-muted-foreground">${b.spent.toFixed(0)} spent</span>
-              <span className="font-mono tabular-nums">${b.limit.toFixed(0)} limit</span>
+              <span className="font-mono tabular-nums text-muted-foreground">{formatMoney(b.spent, currency)} spent</span>
+              <span className="font-mono tabular-nums">{formatMoney(b.limit, currency)} limit</span>
             </div>
             <div className="h-2 bg-accent rounded-full overflow-hidden">
               <motion.div
