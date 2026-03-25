@@ -70,7 +70,7 @@ function TransactionForm({ initial, onSubmit, onClose }: {
       </label>
 
       {isRecurring && (
-        <Select value={frequency} onValueChange={v => setFrequency(v)}>
+        <Select value={frequency} onValueChange={v => setFrequency(v as 'weekly' | 'monthly' | 'yearly')}>
           <SelectTrigger><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="weekly">Weekly</SelectItem>
