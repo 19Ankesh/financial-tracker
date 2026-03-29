@@ -37,7 +37,7 @@ function TransactionForm({ initial, onSubmit, onClose }: {
       amount: parseFloat(amount),
       category,
       description,
-      date,
+      date: format(date, 'yyyy-MM-dd'),
       isRecurring,
       recurringFrequency: isRecurring ? frequency : undefined,
     });
@@ -67,7 +67,17 @@ function TransactionForm({ initial, onSubmit, onClose }: {
       </Select>
 
       <Input placeholder="Description" value={description} onChange={e => setDescription(e.target.value)} required />
-      <Input type="date" value={date} onChange={e => setDate(e.target.value)} required />
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !date && "text-muted-foreground")}>
+            <CalendarIcon className="mr-2 h-4 w-4" />
+            {format(date, 'PPP')}
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-auto p-0" align="start">
+          <Calendar mode="single" selected={date} onSelect={d => d && setDate(d)} initialFocus className={cn("p-3 pointer-events-auto")} />
+        </PopoverContent>
+      </Popover>
 
       <label className="flex items-center gap-2 text-sm">
         <input type="checkbox" checked={isRecurring} onChange={e => setIsRecurring(e.target.checked)} className="rounded border-border" />
