@@ -1,14 +1,18 @@
 import { useState, useMemo } from 'react';
+import { format } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useFinance } from '@/contexts/FinanceContext';
 import { Transaction, Category, CATEGORY_CONFIG, INCOME_CATEGORIES, EXPENSE_CATEGORIES } from '@/lib/types';
 import { formatMoney } from '@/lib/currencies';
 import { exportToCSV } from '@/lib/export';
+import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Plus, Search, Download, Trash2, Pencil, ArrowUpDown } from 'lucide-react';
+import { Plus, Search, Download, Trash2, Pencil, ArrowUpDown, CalendarIcon } from 'lucide-react';
 
 function TransactionForm({ initial, onSubmit, onClose }: {
   initial?: Transaction;
