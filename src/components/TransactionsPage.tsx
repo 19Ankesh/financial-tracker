@@ -1,14 +1,18 @@
 import { useState, useMemo } from 'react';
+import { format } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useFinance } from '@/contexts/FinanceContext';
 import { Transaction, Category, CATEGORY_CONFIG, INCOME_CATEGORIES, EXPENSE_CATEGORIES } from '@/lib/types';
 import { formatMoney } from '@/lib/currencies';
 import { exportToCSV } from '@/lib/export';
+import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Plus, Search, Download, Trash2, Pencil, ArrowUpDown } from 'lucide-react';
+import { Plus, Search, Download, Trash2, Pencil, ArrowUpDown, CalendarIcon } from 'lucide-react';
 
 function TransactionForm({ initial, onSubmit, onClose }: {
   initial?: Transaction;
@@ -19,7 +23,7 @@ function TransactionForm({ initial, onSubmit, onClose }: {
   const [amount, setAmount] = useState(initial?.amount?.toString() || '');
   const [category, setCategory] = useState<Category>(initial?.category || 'food');
   const [description, setDescription] = useState(initial?.description || '');
-  const [date, setDate] = useState(initial?.date?.slice(0, 10) || new Date().toISOString().slice(0, 10));
+  const [date, setDate] = useState<Date>(initial?.date ? new Date(initial.date) : new Date());
   const [isRecurring, setIsRecurring] = useState(initial?.isRecurring || false);
   const [frequency, setFrequency] = useState<'weekly' | 'monthly' | 'yearly'>(initial?.recurringFrequency || 'monthly');
 
@@ -33,7 +37,7 @@ function TransactionForm({ initial, onSubmit, onClose }: {
       amount: parseFloat(amount),
       category,
       description,
-      date,
+      date: format(date, 'yyyy-MM-dd'),
       isRecurring,
       recurringFrequency: isRecurring ? frequency : undefined,
     });
@@ -63,7 +67,17 @@ function TransactionForm({ initial, onSubmit, onClose }: {
       </Select>
 
       <Input placeholder="Description" value={description} onChange={e => setDescription(e.target.value)} required />
-      <Input type="date" value={date} onChange={e => setDate(e.target.value)} required />
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !date && "text-muted-foreground")}>
+            <CalendarIcon className="mr-2 h-4 w-4" />
+            {format(date, 'PPP')}
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-auto p-0" align="start">
+          <Calendar mode="single" selected={date} onSelect={d => d && setDate(d)} initialFocus className={cn("p-3 pointer-events-auto")} />
+        </PopoverContent>
+      </Popover>
 
       <label className="flex items-center gap-2 text-sm">
         <input type="checkbox" checked={isRecurring} onChange={e => setIsRecurring(e.target.checked)} className="rounded border-border" />
