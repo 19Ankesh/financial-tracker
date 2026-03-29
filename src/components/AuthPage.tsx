@@ -74,9 +74,9 @@ export function AuthPage() {
       >
         <div className="text-center mb-8">
           <div className="w-12 h-12 rounded-xl bg-primary flex items-center justify-center mx-auto mb-4">
-            <span className="text-primary-foreground font-bold text-xl">V</span>
+            <span className="text-primary-foreground font-bold text-xl">M</span>
           </div>
-          <h1 className="text-2xl font-semibold tracking-tight">Vault.ai</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">My Expense Tracker</h1>
           <p className="text-sm text-muted-foreground mt-1">
             {isForgot ? 'Reset your password' : isSignUp ? 'Create your account' : 'Sign in to your vault'}
           </p>
