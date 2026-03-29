@@ -75,7 +75,7 @@ function TransactionForm({ initial, onSubmit, onClose }: {
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-auto p-0" align="start">
-          <Calendar mode="single" selected={date} onSelect={d => d && setDate(d)} initialFocus className={cn("p-3 pointer-events-auto")} />
+          <Calendar mode="single" selected={date} onSelect={d => d && setDate(d)} captionLayout="dropdown-buttons" fromYear={2020} toYear={2030} initialFocus className={cn("p-3 pointer-events-auto")} />
         </PopoverContent>
       </Popover>
 
