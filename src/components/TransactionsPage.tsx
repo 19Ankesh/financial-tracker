@@ -23,7 +23,7 @@ function TransactionForm({ initial, onSubmit, onClose }: {
   const [amount, setAmount] = useState(initial?.amount?.toString() || '');
   const [category, setCategory] = useState<Category>(initial?.category || 'food');
   const [description, setDescription] = useState(initial?.description || '');
-  const [date, setDate] = useState(initial?.date?.slice(0, 10) || new Date().toISOString().slice(0, 10));
+  const [date, setDate] = useState<Date>(initial?.date ? new Date(initial.date) : new Date());
   const [isRecurring, setIsRecurring] = useState(initial?.isRecurring || false);
   const [frequency, setFrequency] = useState<'weekly' | 'monthly' | 'yearly'>(initial?.recurringFrequency || 'monthly');
 
