@@ -23,9 +23,9 @@ export function AppSidebar({ currentPage, onNavigate }: SidebarProps) {
       <div className="h-16 flex items-center px-4 lg:px-6 border-b border-border">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-            <span className="text-primary-foreground font-bold text-sm">V</span>
+            <span className="text-primary-foreground font-bold text-sm">M</span>
           </div>
-          <span className="hidden lg:block text-foreground font-semibold tracking-tight">Vault.ai</span>
+          <span className="hidden lg:block text-foreground font-semibold tracking-tight">My Expense Tracker</span>
         </div>
       </div>
 
